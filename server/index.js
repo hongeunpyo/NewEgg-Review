@@ -14,6 +14,11 @@ app.use(express.static(__dirname + '/../client/dist'));
 app.use(bodyParser.json());
 app.use('/', router);
 
+router.get('/', (req, res) => {
+    console.log('log');
+    res.send(200, 'Hello World');
+})
+
 router.get('/reviews/:item_id', (req, res) => {
     db.all('SELECT * FROM reviews WHERE item_id=(?)', [req.params.item_id], (err, row) => {
         if (err) {
