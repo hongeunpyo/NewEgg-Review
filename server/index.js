@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 app.use('/', router);
 
 router.get('/', (req, res) => {
-    console.log('Hello World');
+    res.send(200, 'Hello World');
 })
 
 router.get('/reviews/:item_id', (req, res) => {
