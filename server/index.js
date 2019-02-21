@@ -15,6 +15,7 @@ app.use(bodyParser.json());
 app.use('/', router);
 
 router.get('/', (req, res) => {
+    console.log('log');
     res.send(200, 'Hello World');
 })
 
