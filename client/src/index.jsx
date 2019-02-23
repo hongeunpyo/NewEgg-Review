@@ -65,8 +65,7 @@ class App extends React.Component {
         if (view === 'reviews' && Array.isArray(reviews) && reviews.length > 0) {
             return (
                 <React.Fragment>
-                    <Overview sort={this.sort} filterByRating={this.ratingFilter}  reviews={this.state.reviews} />
-                    <Reviews voteHelpful={this.voteHelpful} voteNotHelpful={this.voteNotHelpful} reviews={this.state.reviews} />
+                    <Reviews voteHelpful={this.voteHelpful} voteNotHelpful={this.voteNotHelpful} sort={this.sort} filterByRating={this.ratingFilter} reviews={this.state.reviews} />
                 </React.Fragment>
             )
         } else {

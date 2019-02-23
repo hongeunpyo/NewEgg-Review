@@ -8,6 +8,14 @@ body {
     border-top-left-radius: 6px;
 }
 
+.reviewMain {
+    width: 75%;
+    border: 1px solid #ccc;
+    /* border-bottom: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc; */
+}
+
 .reviewApp {
     display: block;
 }
@@ -21,13 +29,12 @@ body {
 
 .navbar {
     width: 75.85%;
-    border-bottom: 1px solid #ccc;
+    /* border-bottom: 1px solid #ccc; */
     padding: 7px 7px 7px 0;
 }
 
 .reviews {
-    margin: 0 0 0 1px;
-    border-left: 1px solid #ccc;;
+    margin: 40px 10px 0 10px;
 }
 
 .nav_unselected {
@@ -74,19 +81,19 @@ body {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    margin: 0 0 0 -3px;
     padding: 10px;
+    /* margin: 0 0 0 -3px;
     float: left;
     width: 75%;
     border-left: 1px solid #ccc;
-    border-right: 1px solid #ccc;
+    border-right: 1px solid #ccc; */
     border-bottom: 1px solid #ccc;
 }
 
-.reviewOverview {
+/* .reviewOverview {
     width: 76.3%;
     border-right: 1px solid #ccc;
-}
+} */
 
 .sidebar {
     order: 1;
@@ -199,7 +206,7 @@ body {
 .poll {
     float: right;
     font-size: 13px;
-    padding: 10px 0;
+    /* padding: 10px 0; */
 }
 
 button {
@@ -231,6 +238,5 @@ button {
 
 .blank {
     width: 75%;
-    border-bottom: 1px solid #ccc;
-    border-right: 1px solid #ccc;
+    border: 1px solid #ccc;
 }
