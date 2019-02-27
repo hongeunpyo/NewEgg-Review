@@ -13,7 +13,7 @@ module.exports = {
             return 'F'
         }
         return 'T'
-        },
+    },
     item_id: (max) => (Math.floor(Math.random() * max) + 1),
     eggs: (max) => (Math.floor(Math.random() * max) + 1)
 }
