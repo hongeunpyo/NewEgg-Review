@@ -1,17 +1,16 @@
 const {author, body, pros, cons, title, date, verified, item_id, eggs} = require('./generator')
+const faker = require('faker');
+
+//someStaticData
+var staticArr = JSON.stringify([title(), pros(), cons(), body(), author()])
 
 module.exports = {
-  value_gen: (n) => {
-    var values = [];
+  value_gen: () => {
     var obj = {}
-    if (n === 0) {
-      obj['review_array'] = null;
-    } else {
-      // for (let i = 0; i < n; ++i) {
-          values.push([item_id(10000000),title(), pros(), cons(), body(), verified(), date(1000), eggs(5), author()])
-          obj['review_array'] = JSON.stringify(values)
-      // }
-    }
+      obj['review_data'] = null;
+      obj['static_data'] = staticArr;
+      obj['item_id'] = item_id(10000000);
+      obj['review_data'] = JSON.stringify([verified(), date(1000), eggs(5)])
     return obj;
   }
 }

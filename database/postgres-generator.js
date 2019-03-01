@@ -1,5 +1,7 @@
 const { Pool, Client } = require('pg');
+const { performance } = require('perf_hooks')
 const {PGHOST, PGUSER, PGDATABASE, PGPASSWORD, PGPORT} = require('./postgres.config');
+const {author, body, pros, cons, title, date, verified, item_id, eggs} = require('./generator')
 const {value_gen} = require('./dataHelpers.js')
 const pgp = require('pg-promise')({
   capSQL: true
@@ -16,72 +18,48 @@ const cn = {
 //using pg-promises to connect to database
 const db = pgp(cn);
 
-// var sql = `INSERT INTO reviews (item_id, title, pros, cons, body, verified, date, eggs, author) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`
-var colSet = new pgp.helpers.ColumnSet(['review_array'],  {table: 'reviews'})
-
 // generate values according to random input
-const dataGenerate = function() {
+const dataGenerate = function(number) {
   const values = []
-  for (let i = 0; i < 100001; ++i) {
-    var item = value_gen(Math.floor(Math.random() * 10))
+  for (let i = 0; i < number; ++i) {
+    var item = value_gen()
     if (Object.keys(item).length !== 0) {
-      item = value_gen(Math.floor(Math.random() * 10));
       values.push(item);
     }
     if (i % 50000 === 0) {
       console.log(`ay we made it ${i}`)
     }
   }
-  databaseInsert(values);
+  // databaseInsert(values);
+  // console.log(values);
+  return values;
 }
 
-const databaseInsert = function(array) {
+const databaseInsert = async function(number) {
+  var array = dataGenerate(number);
+  // console.log(array);
+  var colSet = new pgp.helpers.ColumnSet(['review_data', 'static_data', 'item_id'],  {table: 'reviews'});
   const query = pgp.helpers.insert(array, colSet);
-  db.none(query).then((data) => {
-    console.log('Data successfully seeded')
+  await db.none(query).then((data) => {
+    console.log('Data successfully seeded');
   }).catch((err) => {
-    console.log('Error adding data', err)
+    console.log('Error adding data', err);
   }).then(() => {
+
   }).catch(err => {
-    console.log('Error closing pool')
+    console.log('Error closing pool');
   });
 }
 
-//promisify given function x# of times and resolve one by one
-const queueInserts = function(iterations, generator) {
-  var queue = [];
-
+// promisify given function x# of times and resolve one by one
+const queueInserts = async function(iterations, insertion) {
+  const t0 = performance.now();
   for (let i = 0; i < iterations; i++) {
-    queue.push(new Promise((resolve, reject) => {
-      resolve(generator());
-    }))
+    await(insertion(500000))
   }
-  
-  // const serializePromises = (funcs) => {
-  //   funcs.reduce((promise, func) => {
-  //     promise.then((result) => {
-  //       func().then(Array.prototype.concat.bind(result))
-  //     })
-  //     promise.resolve([]);
-  //   })
-  // }
-  // serializePromises(queue);
-  // Promise.all(queue).then(() => {
-  //   console.log('Promise resolved');
-  // }).catch((err) => {
-  //   console.log('Error occurred while resolving promises')
-  // })
   db.$pool.end();
+  const t1 = performance.now();
+  console.log('Performance in ms', t1 - t0)
 }
 
-queueInserts(4, dataGenerate);
-
-  // for (let i = 0; i < queue.length; i++) {
-  //   console.log('queue Iterations',i);
-  //   Promise.all(queue[0]).then(() => {
-  //     console.log('Promise resolved')
-  //   }).catch(() => {
-  //     console.log('Promise failed')
-  //   })
-  //   queue.pop();
-  // }
+queueInserts(20, databaseInsert);
