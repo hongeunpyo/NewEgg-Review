@@ -4,12 +4,14 @@ module.exports = {
   value_gen: (n) => {
     var values = [];
     var obj = {}
-    for (var i = 0; i < n; i++) {
-        values.push([title(), pros(), cons(), body(), verified(), date(1000), eggs(5), author()])
-        obj['review_array'] = JSON.stringify(values)
+    if (n === 0) {
+      obj['review_array'] = null;
+    } else {
+      // for (let i = 0; i < n; ++i) {
+          values.push([item_id(10000000),title(), pros(), cons(), body(), verified(), date(1000), eggs(5), author()])
+          obj['review_array'] = JSON.stringify(values)
+      // }
     }
-    if (obj !== undefined) {
-      return obj;
-    }
+    return obj;
   }
 }
