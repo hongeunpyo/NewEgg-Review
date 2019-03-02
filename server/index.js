@@ -33,7 +33,7 @@ app.get('/reviews/:item_id', (req, res) => {
         if (err) {
             console.error('ERROR occurred while retrieving reviews')
         }
-        res.send(200, row);
+        res.status(200).send(row);
     })
 });
 
@@ -54,13 +54,13 @@ app.patch('/reviews', (req, res) => {
         let stmt = db.prepare('UPDATE reviews SET helpful = helpful + 1 WHERE id = ?');
         stmt.run(newPost.id)
         stmt.finalize();
-        res.send(201);
+        res.sendStatus(201);
     }
     if (req.body.helpful === false) {
         let stmt = db.prepare('UPDATE reviews SET not_helpful = not_helpful + 1 WHERE id = ?');
         stmt.run(newPost.id)
         stmt.finalize();
-        res.send(201);
+        res.sendStatus(201);
     }
 })
 
