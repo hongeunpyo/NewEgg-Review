@@ -32,6 +32,12 @@ db.connect()
     console.log('Table created')
   }).catch((err) => {
     console.log('Failed to create table', err)
+  })
+  client.query(`DROP INDEX item_id IF EXISTS)`)
+  .then((data) => {
+    console.log('Item index dropped')
+  }).catch((err) => {
+    console.log('Failed to drop index', err)
   }).then(() => {
     client.end();
   })

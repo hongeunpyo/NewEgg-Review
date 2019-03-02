@@ -7,6 +7,7 @@ const pgp = require('pg-promise')({
   capSQL: true
 });
 
+//config for connecting to database
 const cn = {
   user: PGUSER,
   database: PGDATABASE,
@@ -30,14 +31,12 @@ const dataGenerate = function(number) {
       console.log(`ay we made it ${i}`)
     }
   }
-  // databaseInsert(values);
-  // console.log(values);
   return values;
 }
 
+// insertion function that will insert into database and call data generation
 const databaseInsert = async function(number) {
   var array = dataGenerate(number);
-  // console.log(array);
   var colSet = new pgp.helpers.ColumnSet(['review_data', 'static_data', 'item_id'],  {table: 'reviews'});
   const query = pgp.helpers.insert(array, colSet);
   await db.none(query).then((data) => {
@@ -57,9 +56,18 @@ const queueInserts = async function(iterations, insertion) {
   for (let i = 0; i < iterations; i++) {
     await(insertion(500000))
   }
-  db.$pool.end();
+  // db.$pool.end();
   const t1 = performance.now();
   console.log('Performance in ms', t1 - t0)
+  
+  await db.none(`CREATE INDEX item_index ON reviews (item_id)`)
+  .then((data) => {
+    console.log('Item index created')
+  }).catch((err) => {
+    console.log('Failed to create index', err)
+  }).then(() => {
+    db.$pool.end();
+  })
 }
 
 queueInserts(20, databaseInsert);
