@@ -1,4 +1,4 @@
-const {author, body, pros, cons, title, date, verified, item_id, eggs} = require('./generator')
+const {author, body, pros, cons, title, date, verified, item_id, eggs} = require('../generator')
 const faker = require('faker');
 
 //someStaticData
