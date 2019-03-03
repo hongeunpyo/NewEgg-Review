@@ -1,7 +1,7 @@
 const { Pool, Client } = require('pg');
 const { performance } = require('perf_hooks')
 const {PGHOST, PGUSER, PGDATABASE, PGPASSWORD, PGPORT} = require('./postgres.config');
-const {author, body, pros, cons, title, date, verified, item_id, eggs} = require('./generator')
+const {author, body, pros, cons, title, date, verified, item_id, eggs} = require('../generator')
 const {value_gen} = require('./dataHelpers.js')
 const pgp = require('pg-promise')({
   capSQL: true
