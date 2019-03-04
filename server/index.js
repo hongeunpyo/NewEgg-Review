@@ -8,6 +8,8 @@ const app = express();
 const port = process.env.PORT || 3009;
 const router = express.Router();
 const cors = require('cors');
+const {PGHOST, PGUSER, PGDATABASE, PGPASSWORD, PGPORT} = require('./postgres.config');
+const { Pool, Client } = require('pg');
 
 const dbPath = path.resolve(__dirname, '../database/reviewdb.db') 
 let db = new sqlite3.Database(dbPath);
@@ -16,6 +18,17 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(compression());
 
+const cn = {
+    user: PGUSER,
+    database: PGDATABASE,
+    host: PGHOST,
+    password: PGPASSWORD,
+    port: PGPORT
+  }
+
+
+
+//Wildcard operator that serves compressed bundle file
 app.get('*.js', function (req, res, next) {
   req.url = req.url + '.gz';
   res.set('Content-Encoding', 'gzip');
@@ -24,10 +37,12 @@ app.get('*.js', function (req, res, next) {
 
 app.use(express.static(__dirname + '/../client/dist'));
 
+//Route that sends back index.html whenever a parameter id gets passed in
 app.get('/:id', (req, res) => {
     res.sendFile(path.join(__dirname + '/../client/dist/index.html'))
 });
 
+//GET request for review information according to item id
 app.get('/reviews/:item_id', (req, res) => {
     db.all('SELECT * FROM reviews WHERE item_id=(?)', [req.params.item_id], (err, row) => {
         if (err) {

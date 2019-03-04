@@ -20,12 +20,6 @@ var resetDB = async function() {
     console.log('Error occurred when creating keyspace', err)
   })
   
-  await client.shutdown()
-  .then(() => {
-    console.log('Closing connection to Cassandra db...');
-  }).catch((err) => {
-    console.log('Error while shutting down connection to db...');
-  })
 }
 
 //initializes tables in keyspace reviews
@@ -49,4 +43,13 @@ const initializeTables = async () => {
   )`).then(() => console.log('Table reviews created')).catch((err) => console.log('Error occurred while creating table reviews', err))
 }
 
-resetDB(initializeTables());
+(async function () {
+  await resetDB();
+  await initializeTables()
+  await client.shutdown()
+  .then(() => {
+    console.log('Closing connection to Cassandra db...');
+  }).catch((err) => {
+    console.log('Error while shutting down connection to db...');
+  })
+})()
