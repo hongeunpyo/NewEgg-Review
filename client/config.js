@@ -1,4 +1,4 @@
 
 module.exports = {
-    awsReview: 'http://localhost:3009'
+    awsReview: 'http://localhost'
 }
