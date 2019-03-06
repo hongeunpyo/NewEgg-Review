@@ -35,9 +35,9 @@ const dataGenerate = function(number) {
 }
 
 // insertion function that will insert into database and call data generation
-const databaseInsert = async function(number) {
+const databaseInsert = async function(iterations, number) {
   var array = dataGenerate(number);
-  var colSet = new pgp.helpers.ColumnSet(['review_data', 'static_data', 'item_id'],  {table: 'reviews'});
+  var colSet = new pgp.helpers.ColumnSet(['title', 'pros', 'cons', 'body', 'verified', 'date', 'eggs', 'author', 'item_id'],  {table: 'reviews'});
   const query = pgp.helpers.insert(array, colSet);
   await db.none(query).then((data) => {
     console.log('Data successfully seeded');
@@ -50,24 +50,42 @@ const databaseInsert = async function(number) {
   });
 }
 
-// promisify given function x# of times and resolve one by one
-const queueInserts = async function(iterations, insertion) {
-  const t0 = performance.now();
-  for (let i = 0; i < iterations; i++) {
-    await(insertion(500000))
-  }
-  // db.$pool.end();
-  const t1 = performance.now();
-  console.log('Performance in ms', t1 - t0)
+const idInsert = async function(iterations, batchSize) {
+  var colSet = new pgp.helpers.ColumnSet(['item_id'], {table: 'items'});
   
-  await db.none(`CREATE INDEX item_index ON reviews (item_id)`)
-  .then((data) => {
-    console.log('Item index created')
-  }).catch((err) => {
-    console.log('Failed to create index', err)
-  }).then(() => {
-    db.$pool.end();
-  })
+  var arr = [];
+  for (let i = 1 + batchSize * iterations; i <= batchSize + (batchSize * iterations); ++i) {
+    var obj = {};
+    obj['item_id'] = i;
+    // console.log(obj);
+    arr.push(obj);
+    if (i % 100000 === 0) {
+      console.log(`@ iteration ${iterations}, inserting ${i} entries`)
+    }
+  }
+  const query = pgp.helpers.insert(arr, colSet);
+  await db.none(query).then(()=>{console.log('DB seeded')})
 }
 
-queueInserts(20, databaseInsert);
+// promisify given function x# of times and resolve one by one
+const queueInserts = async function(batchSize, generationFunction) {
+  const t0 = performance.now();
+  var iterations = 10000000/batchSize
+  console.log(iterations)
+  for (let i = 0; i < iterations; ++i) {
+    await(generationFunction(i, batchSize))
+  }
+
+  //testing performance of seeder
+  const t1 = performance.now();
+  console.log('Performance in ms', t1 - t0)
+
+}
+
+const insertController = async function() {
+  // await queueInserts(500000, idInsert);
+  await queueInserts(500000, databaseInsert);
+  await db.$pool.end();
+}
+
+insertController();

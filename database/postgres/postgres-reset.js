@@ -14,34 +14,41 @@ const db = new Pool(cn);
 
 //Table creation and deconstruction
 db.connect()
-.then(client => {
+.then((client) => {
   client.query('DROP TABLE IF EXISTS reviews')
   .then((data) => {
-    console.log('Table dropped')
+    console.log('Table reviews dropped')
   }).catch((err) => {
     console.log('Failed to drop table', err)
   })
-  
+
   client.query(`CREATE TABLE reviews (
     review_id SERIAL PRIMARY KEY,
-    item_id INT,
-    review_data TEXT,
-    static_data TEXT
+    title TEXT,
+    pros TEXT,
+    cons TEXT,
+    body TEXT,
+    verified TEXT,
+    date TEXT,
+    eggs INT,
+    author TEXT,
+    helpful INT DEFAULT 0,
+    not_helpful INT DEFAULT 0,
+    item_id INT
     )
   ;`).then((data) => {
-    console.log('Table created')
+    console.log('Review table created')
   }).catch((err) => {
-    console.log('Failed to create table', err)
+    console.log('Failed to create review table', err)
   })
-  client.query(`DROP INDEX item_id IF EXISTS)`)
-  .then((data) => {
-    console.log('Item index dropped')
-  }).catch((err) => {
-    console.log('Failed to drop index', err)
-  }).then(() => {
-    client.end();
-  })
-}).catch(e => {
-  client.release()
-  console.log(err.stack);
-})
+  client.query('CREATE INDEX item_index ON reviews(item_id)')
+    .then(() => {
+      console.log('Index item_index created on reviews');
+      client.release();
+    }).catch((err) => {
+      console.log('Failed to create index item_index');
+      client.release();
+    }).then(() => {
+      db.end();
+    })
+});

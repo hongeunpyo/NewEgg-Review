@@ -1,6 +1,5 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const sqlite3 = require('sqlite3');
 const path = require('path');
 const compression = require('compression');
 
@@ -8,11 +7,8 @@ const app = express();
 const port = process.env.PORT || 3009;
 const router = express.Router();
 const cors = require('cors');
-const {PGHOST, PGUSER, PGDATABASE, PGPASSWORD, PGPORT} = require('./postgres.config');
+const {PGHOST, PGUSER, PGDATABASE, PGPASSWORD, PGPORT} = require('../database/postgres/postgres.config');
 const { Pool, Client } = require('pg');
-
-const dbPath = path.resolve(__dirname, '../database/reviewdb.db') 
-let db = new sqlite3.Database(dbPath);
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -24,9 +20,10 @@ const cn = {
     host: PGHOST,
     password: PGPASSWORD,
     port: PGPORT
-  }
+}
 
-
+//connection to postgres database
+const db = new Pool(cn);
 
 //Wildcard operator that serves compressed bundle file
 app.get('*.js', function (req, res, next) {
@@ -44,11 +41,15 @@ app.get('/:id', (req, res) => {
 
 //GET request for review information according to item id
 app.get('/reviews/:item_id', (req, res) => {
-    db.all('SELECT * FROM reviews WHERE item_id=(?)', [req.params.item_id], (err, row) => {
-        if (err) {
-            console.error('ERROR occurred while retrieving reviews')
-        }
-        res.status(200).send(row);
+    db.connect().then((client) => {
+        client.query('SELECT * FROM reviews WHERE item_id = $1', [req.params.item_id])
+            .then((data) => {
+                res.send(data);
+            }).catch((err) => {
+                console.log("Error occurred while retrieving data", err);
+            }).then(() => {
+                client.end();
+            })
     })
 });
 
