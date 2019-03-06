@@ -7,11 +7,12 @@
     "node": ">=6.13.0"
   },
   "scripts": {
-    "start": "npm run server-dev & npm run react-dev",
+    "start": "npm run start-server & npm run react-dev",
     "test": "mocha",
     "react-dev": "webpack -d --watch",
     "server-dev": "nodemon server/index.js",
     "build-prod": "webpack -p --mode production",
+    "start-server": "node ./server/index.js",
     "reset-postgres": "node ./database/postgres/postgres-reset.js",
     "seed-postgres": "node ./database/postgres/postgres-generator.js",
     "reset-cassandra": "node ./database/cassandra/cassandra-initializer.js",

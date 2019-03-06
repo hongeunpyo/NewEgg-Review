@@ -22,8 +22,6 @@ const cn = {
     port: PGPORT
 }
 
-// const con = "postgres://david:Moo1010321@52.15.74.21:5432/reviews";
-
 //connection to postgres database
 const db = new Pool(cn);
 
