@@ -22,6 +22,8 @@ const cn = {
     port: PGPORT
 }
 
+// const con = "postgres://david:Moo1010321@52.15.74.21:5432/reviews";
+
 //connection to postgres database
 const db = new Pool(cn);
 
@@ -44,6 +46,23 @@ app.get('/reviews/:item_id', (req, res) => {
     db.connect().then((client) => {
         client.query('SELECT * FROM reviews WHERE item_id = $1', [req.params.item_id])
             .then((data) => {
+                res.send(data.rows);
+            }).catch((err) => {
+                console.log("Error occurred while retrieving data", err);
+            }).then(() => {
+                client.end();
+            })
+    }).catch((err) => console.log("Error occurred while connecting to DB", err))
+});
+
+app.post('/reviews', (req, res) => {
+    let newPost = req.body;
+    db.connect().then((client) => {
+        client.query(`INSERT INTO reviews (item_id, title, pros, cons, body, verified, date, eggs,
+            author) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [newPost.item_id, newPost.title, newPost.pros,
+            newPost.cons, newPost.body, newPost.verified, newPost.date,newPost.eggs, newPost.author])
+            .then((data) => {
+                console.log('Post request sucessful')
                 res.send(data);
             }).catch((err) => {
                 console.log("Error occurred while retrieving data", err);
@@ -53,30 +72,34 @@ app.get('/reviews/:item_id', (req, res) => {
     })
 });
 
-app.post('/reviews', (req, res) => {
-    let newPost = req.body;
-    let stmt = db.prepare('INSERT INTO reviews (item_id, title, pros,\
-    cons,body,verified,date,eggs,author) VALUES (?,?,?,?,?,?,?,?,?)');
-    stmt.run(newPost.item_id, newPost.title, newPost.pros,
-    newPost.cons, newPost.body, newPost.verified, newPost.date,
-    newPost.eggs, newPost.author)
-    stmt.finalize();
-    res.send(201);
-});
-
 app.patch('/reviews', (req, res) => {
     let newPost = req.body;
+    console.log(newPost)
     if (req.body.helpful === true) {
-        let stmt = db.prepare('UPDATE reviews SET helpful = helpful + 1 WHERE id = ?');
-        stmt.run(newPost.id)
-        stmt.finalize();
-        res.sendStatus(201);
+        db.connect().then((client) => {
+            client.query(`UPDATE reviews SET helpful = helpful + 1 WHERE review_id = $1`, [newPost.id])
+                .then(() => {
+                    console.log('Updated "helpful" in reviews')
+                    res.sendStatus(201);
+                }).catch((err) => {
+                    console.log("Error occurred while updating data", err);
+                }).then(() => {
+                    client.end();
+                })
+            });
     }
     if (req.body.helpful === false) {
-        let stmt = db.prepare('UPDATE reviews SET not_helpful = not_helpful + 1 WHERE id = ?');
-        stmt.run(newPost.id)
-        stmt.finalize();
-        res.sendStatus(201);
+        db.connect().then((client) => {
+            client.query(`UPDATE reviews SET not_helpful = not_helpful + 1 WHERE review_id = $1`, [newPost.id])
+                .then(() => {
+                    console.log('Updated "not_helpful" in reviews')
+                    res.sendStatus(201);
+                }).catch((err) => {
+                    console.log("Error occurred while updating data", err);
+                }).then(() => {
+                    client.end();
+                })
+            });
     }
 })
 

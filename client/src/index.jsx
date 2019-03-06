@@ -30,6 +30,10 @@ class App extends React.Component {
         this.filterReviews = this.filterReviews.bind(this);
     }
 
+    componentDidMount() {
+        this.getItemByUrl();
+    }
+
     getItemByUrl() {
         let item = window.location.href.split('/')[3] || 1;
         this.setState({currentItem: item}, () => {
@@ -40,14 +44,16 @@ class App extends React.Component {
     getReviews() {
         let itemId = this.state.currentItem;
         axios.get(`${awsReview}/reviews/${itemId}`)
-             .then((response) => this.setState({reviews: response.data}, () => {
-                 this.sortReviews(this.state.sortBy);
-             }))
-             .catch((err) => console.error('There was a problem getting reviews: ' + err))
+             .then((response) => {
+                 this.setState({reviews: response.data})
+             }).then(() => {
+                this.sortReviews(this.state.sortBy);
+             }).catch((err) => console.error('There was a problem getting reviews: ' + err))
     }
 
     filterReviews(filterType) {
         const currentFilters = this.state.filters;
+        console.log(currentFilters);
         if (currentFilters.indexOf(filterType) !== -1) {
             currentFilters.splice(currentFilters.indexOf(filterType), 1);
         } else {
@@ -70,6 +76,7 @@ class App extends React.Component {
     voteHelpful(review) {
         let votedItems = this.state.reviewsVotedOn;
         votedItems.push(review.id)
+        console.log('event clicked on', review);
         this.setState({reviewsVotedOn: votedItems}, () => {
         axios.patch(`${awsReview}/reviews`, {id: review.id, helpful: true})
              .then((response) => this.getReviews())
@@ -120,10 +127,6 @@ class App extends React.Component {
         //         this.setState({filteredReviews: this.state.filteredReviews.sort((a, b) => (a.eggs - b.eggs))})
         //     }
         // }
-    }
-
-    componentDidMount() {
-        this.getItemByUrl();
     }
 
     changeView(newView) {

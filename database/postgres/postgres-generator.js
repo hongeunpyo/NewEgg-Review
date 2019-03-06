@@ -70,8 +70,8 @@ const idInsert = async function(iterations, batchSize) {
 // promisify given function x# of times and resolve one by one
 const queueInserts = async function(batchSize, generationFunction) {
   const t0 = performance.now();
-  var iterations = 10000000/batchSize
-  console.log(iterations)
+  let iterations = 10000000/batchSize
+  console.log(`number of iterations: ${iterations}`)
   for (let i = 0; i < iterations; ++i) {
     await(generationFunction(i, batchSize))
   }
