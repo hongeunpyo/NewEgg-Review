@@ -8,7 +8,7 @@ const port = process.env.PORT || 3009;
 const router = express.Router();
 const cors = require('cors');
 const {PGHOST, PGUSER, PGDATABASE, PGPASSWORD, PGPORT} = require('../database/postgres/postgres.config');
-const { Pool, Client } = require('pg');
+// const { Pool, Client } = require('pg');
 const pgp = require('pg-promise')({
     capSQL: true
   });
@@ -45,13 +45,12 @@ app.get('/:id', (req, res) => {
 
 //GET request for review information according to item id
 app.get('/reviews/:item_id', (req, res) => {
-    db.any('SELECT * FROM reviews where item_id = $1', [req.params.item_id], (err, data) => {
-        if (err) {
-            console.log("Error occurred while retrieving data", err);
-        }
-        res.send(data);
-        res.end();
-    })
+    db.any('SELECT * FROM reviews where item_id = $1', [req.params.item_id])
+        .then((data) => {
+            res.send(data);
+            res.end();
+        }).catch()
+    
     // db.connect().then((client) => {
     //     client.query('SELECT * FROM reviews WHERE item_id = $1', [req.params.item_id])
     //         .then((data) => {
@@ -68,13 +67,11 @@ app.post('/reviews', (req, res) => {
     let newPost = req.body;
     db.none(`INSERT INTO reviews (item_id, title, pros, cons, body, verified, date, eggs,
                  author) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [newPost.item_id, newPost.title, newPost.pros,
-                 newPost.cons, newPost.body, newPost.verified, newPost.date,newPost.eggs, newPost.author], (err) => {
-                     if (err) {
-                         console.log("Error has occurred while creating new post");
-                     }
-                     res.sendStatus(201);
-                     res.end();
-                 })
+                 newPost.cons, newPost.body, newPost.verified, newPost.date,newPost.eggs, newPost.author])
+                 .then((data) => {
+                     res.send(data);
+                     res.end()
+                 }).catch(err)
     // db.connect().then((client) => {
     //     client.query(`INSERT INTO reviews (item_id, title, pros, cons, body, verified, date, eggs,
     //         author) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [newPost.item_id, newPost.title, newPost.pros,
@@ -94,13 +91,11 @@ app.patch('/reviews', (req, res) => {
     let newPost = req.body;
     console.log(newPost)
     if (req.body.helpful === true) {
-        db.none(`UPDATE reviews SET helpful = helpful + 1 WHERE review_id = $1`, [newPost.id], (err) => {
-            if (err) {
-                console.log("Error has occurred while updating data", err);
-            }
-            res.sendStatus(201);
-            res.end();
-        })
+        db.none(`UPDATE reviews SET helpful = helpful + 1 WHERE review_id = $1`, [newPost.id]) 
+            .then(() => {
+                res.sendStatus(201);
+                res.end();
+            }).catch()
         // db.connect().then((client) => {
         //     client.query(`UPDATE reviews SET helpful = helpful + 1 WHERE review_id = $1`, [newPost.id])
         //         .then(() => {
@@ -115,13 +110,11 @@ app.patch('/reviews', (req, res) => {
     }
     if (req.body.helpful === false) {
         db.connect().then((client) => {
-            db.none(`UPDATE reviews SET not_helpful = not_helpful + 1 WHERE review_id = $1`, [newPost.id], (err) => {
-                if (err) {
-                    console.log("Error has occurred while updating data", err);
-                }
-                res.sendStatus(201);
-                res.end();
-            })
+            db.none(`UPDATE reviews SET not_helpful = not_helpful + 1 WHERE review_id = $1`, [newPost.id])
+                .then(() => {
+                    res.sendStatus(201)
+                    res.end()
+                }).catch()
         })
     }
             // client.query(`UPDATE reviews SET not_helpful = not_helpful + 1 WHERE review_id = $1`, [newPost.id])
