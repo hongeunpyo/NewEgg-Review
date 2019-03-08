@@ -9,6 +9,9 @@ const router = express.Router();
 const cors = require('cors');
 const {PGHOST, PGUSER, PGDATABASE, PGPASSWORD, PGPORT} = require('../database/postgres/postgres.config');
 const { Pool, Client } = require('pg');
+const pgp = require('pg-promise')({
+    capSQL: true
+  });
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -23,7 +26,8 @@ const cn = {
 }
 
 //connection to postgres database
-const db = new Pool(cn);
+// const db = new Pool(cn);
+const db = pgp(cn)
 
 //Wildcard operator that serves compressed bundle file
 app.get('*.js', function (req, res, next) {
