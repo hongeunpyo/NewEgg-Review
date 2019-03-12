@@ -45,6 +45,7 @@ class App extends React.Component {
         let itemId = this.state.currentItem;
         axios.get(`${awsReview}/reviews/${itemId}`)
              .then((response) => {
+                 console.log(response)
                  this.setState({reviews: response.data})
              }).then(() => {
                 this.sortReviews(this.state.sortBy);
