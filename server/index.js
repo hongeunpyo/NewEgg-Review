@@ -36,6 +36,10 @@ app.get('*.js', function (req, res, next) {
   next();
 });
 
+app.get('/loaderio-*', function (req, res) {
+    res.sendFile(path.join(__dirname + '/loaderio-fbd36966cb048c05742ebe8ffa6ae1cf.txt'))
+});
+
 app.use(express.static(__dirname + '/../client/dist'));
 
 //Route that sends back index.html whenever a parameter id gets passed in
