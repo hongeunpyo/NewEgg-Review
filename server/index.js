@@ -2,142 +2,124 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const compression = require('compression');
-
+const cluster = require('cluster');
 const app = express();
 const port = process.env.PORT || 3009;
-const router = express.Router();
 const cors = require('cors');
 const {PGHOST, PGUSER, PGDATABASE, PGPASSWORD, PGPORT} = require('../database/postgres/postgres.config');
-// const { Pool, Client } = require('pg');
 const pgp = require('pg-promise')({
     capSQL: true
   });
 
-app.use(cors());
-app.use(bodyParser.json());
-app.use(compression());
+  //check if cluster is master and run threading function
+if (cluster.isMaster) {
+    //Create cluster for number of cpus available
+    for (var i = 0; i < 2; i++) {
+        cluster.fork();
+    }
+    // Listen for dying workers
+    cluster.on('exit', function (worker) {
+    // Replace the dead worker
+    console.log('Worker %d died :(', worker.id);
+    cluster.fork();
+    });
+} else { //For rest of clusters run express server
 
-const cn = {
-    user: PGUSER,
-    database: PGDATABASE,
-    host: PGHOST,
-    password: PGPASSWORD,
-    port: PGPORT
-}
-
-//connection to postgres database
-// const db = new Pool(cn);
-const db = pgp(cn)
-
-//Wildcard operator that serves compressed bundle file
-app.get('*.js', function (req, res, next) {
-  req.url = req.url + '.gz';
-  res.set('Content-Encoding', 'gzip');
-  next();
-});
-
-app.get('/loaderio-*', function (req, res) {
-    res.sendFile(path.join(__dirname + '/loaderio-fbd36966cb048c05742ebe8ffa6ae1cf.txt'))
-});
-
-app.use(express.static(__dirname + '/../client/dist'));
-
-//Route that sends back index.html whenever a parameter id gets passed in
-app.get('/:id', (req, res) => {
-    res.sendFile(path.join(__dirname + '/../client/dist/index.html'));
-});
-
-//GET request for review information according to item id
-app.get('/reviews/:item_id', (req, res) => {
-    db.any('SELECT * FROM reviews where item_id = $1', [req.params.item_id])
-        .then((data) => {
-            res.send(data);
-            res.end();
-        }).catch()
+    app.use(cors());
+    app.use(bodyParser.json());
+    app.use(compression());
     
-    // db.connect().then((client) => {
-    //     client.query('SELECT * FROM reviews WHERE item_id = $1', [req.params.item_id])
-    //         .then((data) => {
-    //             res.send(data.rows);
-    //         }).catch((err) => {
-    //             console.log("Error occurred while retrieving data", err);
-    //         }).then(() => {
-    //             client.end();
-    //         })
-    // }).catch((err) => console.log("Error occurred while connecting to DB", err))
-});
-
-app.post('/reviews', (req, res) => {
-    let newPost = req.body;
-    db.none(`INSERT INTO reviews (item_id, title, pros, cons, body, verified, date, eggs,
-                 author) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [newPost.item_id, newPost.title, newPost.pros,
-                 newPost.cons, newPost.body, newPost.verified, newPost.date,newPost.eggs, newPost.author])
-                 .then((data) => {
-                     res.send(data);
-                     res.end()
-                 }).catch(err)
-    // db.connect().then((client) => {
-    //     client.query(`INSERT INTO reviews (item_id, title, pros, cons, body, verified, date, eggs,
-    //         author) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [newPost.item_id, newPost.title, newPost.pros,
-    //         newPost.cons, newPost.body, newPost.verified, newPost.date,newPost.eggs, newPost.author])
-    //         .then((data) => {
-    //             console.log('Post request sucessful')
-    //             res.send(data);
-    //         }).catch((err) => {
-    //             console.log("Error occurred while retrieving data", err);
-    //         }).then(() => {
-    //             client.end();
-    //         })
-    // })
-});
-
-app.patch('/reviews', (req, res) => {
-    let newPost = req.body;
-    console.log(newPost)
-    if (req.body.helpful === true) {
-        db.none(`UPDATE reviews SET helpful = helpful + 1 WHERE review_id = $1`, [newPost.id]) 
-            .then(() => {
-                res.sendStatus(201);
+    const cn = {
+        user: PGUSER,
+        database: PGDATABASE,
+        host: PGHOST,
+        password: PGPASSWORD,
+        port: PGPORT
+    }
+    
+    //connection to postgres database
+    // const db = new Pool(cn);
+    const db = pgp(cn)
+    
+    //Wildcard operator that serves compressed bundle file
+    app.get('*.js', function (req, res, next) {
+      req.url = req.url + '.gz';
+      res.set('Content-Encoding', 'gzip');
+      next();
+    });
+    
+    app.get('/loaderio-*', function (req, res) {
+        res.sendFile(path.join(__dirname + '/loaderio-fbd36966cb048c05742ebe8ffa6ae1cf.txt'))
+    });
+    
+    app.use(express.static(__dirname + '/../client/dist'));
+    
+    //Route that sends back index.html whenever a parameter id gets passed in
+    app.get('/:id', (req, res) => {
+        res.sendFile(path.join(__dirname + '/../client/dist/index.html'));
+    });
+    
+    //GET request for review information according to item id
+    app.get('/reviews/:item_id', (req, res) => {
+        db.any('SELECT * FROM reviews where item_id = $1', [req.params.item_id])
+            .then((data) => {
+                res.send(data);
                 res.end();
-            }).catch()
-        // db.connect().then((client) => {
-        //     client.query(`UPDATE reviews SET helpful = helpful + 1 WHERE review_id = $1`, [newPost.id])
-        //         .then(() => {
-        //             console.log('Updated "helpful" in reviews')
-        //             res.sendStatus(201);
-        //         }).catch((err) => {
-        //             console.log("Error occurred while updating data", err);
-        //         }).then(() => {
-        //             client.end();
-        //         })
-        //     });
-    }
-    if (req.body.helpful === false) {
-        db.connect().then((client) => {
-            db.none(`UPDATE reviews SET not_helpful = not_helpful + 1 WHERE review_id = $1`, [newPost.id])
+            }).catch() 
+    });
+    
+    app.post('/reviews', (req, res) => {
+        let newPost = req.body;
+        db.none(`INSERT INTO reviews (item_id, title, pros, cons, body, verified, date, eggs,
+                     author) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [newPost.item_id, newPost.title, newPost.pros,
+                     newPost.cons, newPost.body, newPost.verified, newPost.date,newPost.eggs, newPost.author])
+                     .then((data) => {
+                         res.send(data);
+                         res.end()
+                     }).catch(err)
+    });
+    
+    app.patch('/reviews', (req, res) => {
+        let newPost = req.body;
+        console.log(newPost)
+        if (req.body.helpful === true) {
+            db.none(`UPDATE reviews SET helpful = helpful + 1 WHERE review_id = $1`, [newPost.id]) 
                 .then(() => {
-                    res.sendStatus(201)
-                    res.end()
+                    res.sendStatus(201);
+                    res.end();
                 }).catch()
-        })
+        }
+        if (req.body.helpful === false) {
+            db.connect().then((client) => {
+                db.none(`UPDATE reviews SET not_helpful = not_helpful + 1 WHERE review_id = $1`, [newPost.id])
+                    .then(() => {
+                        res.sendStatus(201)
+                        res.end()
+                    }).catch()
+            })
+        }
+    })
+    
+    app.listen(port, () => {
+        console.log('Listening on port ' + port);
+    });
+    
+    module.exports = {
+        app
     }
-            // client.query(`UPDATE reviews SET not_helpful = not_helpful + 1 WHERE review_id = $1`, [newPost.id])
-            //     .then(() => {
-            //         console.log('Updated "not_helpful" in reviews')
-            //         res.sendStatus(201);
-            //     }).catch((err) => {
-            //         console.log("Error occurred while updating data", err);
-            //     }).then(() => {
-            //         client.end();
-            //     })
-            // });
-    // }
-})
-
-app.listen(port, () => {
-    console.log('Listening on port ' + port);
-});
-
-module.exports = {
-    app
 }
+
+// let htmlTemplate = `
+//     <!DOCTYPE html>
+//     <html>
+//         <head>
+//             <title>Reviews</title>
+//             <link rel="stylesheet" href="style.css">
+//             <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400">
+//         </head>
+//         <body>
+//             <div id="reviewApp"></div>
+//             <script type="text/javascript" src="bundle.js"></script>
+//         </body>
+//     </html>
+//     `
