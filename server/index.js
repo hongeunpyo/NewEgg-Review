@@ -63,7 +63,6 @@ if (cluster.isMaster) {
     //GET request for review information according to item id
     app.get('/reviews/:item_id', async (req, res) => {
         const rawData = await redisClient.getAsync(req.params.item_id)
-        console.log(rawData);
         if (rawData === null) {
             db.any('SELECT * FROM reviews where item_id = $1', [req.params.item_id])
                 .then((data) => {
@@ -72,7 +71,6 @@ if (cluster.isMaster) {
                     res.end();
                 }).catch() 
         } else {
-            console.log('Sending data from redis server')
             res.send(rawData);
             res.end();
         }
