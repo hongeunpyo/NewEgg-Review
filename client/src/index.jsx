@@ -44,7 +44,7 @@ class App extends React.Component {
   getReviews() {
     let itemId = this.state.currentItem;
     axios
-      .get(`${awsReview}/reviews/${itemId}`)
+      .get(`http://${awsReview}/reviews/${itemId}`)
       .then(response => {
         this.setState({ reviews: response.data });
       })
@@ -84,7 +84,7 @@ class App extends React.Component {
     console.log("event clicked on", review);
     this.setState({ reviewsVotedOn: votedItems }, () => {
       axios
-        .patch(`${awsReview}/reviews`, { id: review.id, helpful: true })
+        .patch(`http://${awsReview}/reviews`, { id: review.id, helpful: true })
         .then(response => this.getReviews())
         .catch(err => console.error("Could not process vote"));
     });
@@ -95,7 +95,7 @@ class App extends React.Component {
       reviewsVotedOn: this.state.reviewsVotedOn.push(review.id)
     });
     axios
-      .patch(`${awsReview}/reviews`, { id: review.id, helpful: false })
+      .patch(`http://${awsReview}/reviews`, { id: review.id, helpful: false })
       .then(response => this.getReviews())
       .catch(err => console.error("Could not process vote"));
   }

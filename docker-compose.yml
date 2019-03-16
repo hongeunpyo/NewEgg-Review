@@ -1,0 +1,25 @@
+version: '3'
+networks: 
+  # your network name
+  service-redis:
+    driver: bridge
+
+services:
+  app:
+    image: hongeunpyo/neweggreviewservice:latest
+    ports:
+      - 80:3009
+    networks: 
+      - service-redis
+    links:
+      - redis
+    environment:
+      - REDIS_URL=redis://cache
+
+  redis:
+    image: redis:latest
+    container_name: cache
+    ports:
+      - 6379:6379
+    networks: 
+      - service-redis

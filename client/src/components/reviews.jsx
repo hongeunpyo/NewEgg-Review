@@ -1,5 +1,6 @@
 import React from 'react';
 import $ from 'jquery';
+import { awsReview } from "../../config";
 
 class Reviews extends React.Component {
     constructor(props) {
@@ -86,7 +87,8 @@ class Reviews extends React.Component {
                             </div>
                             <div className="reviewBody">
                                 <div className="reviewHead">
-                                    <span className="rating" style={{background: `url(//ec2-18-191-111-73.us-east-2.compute.amazonaws.com/assets/spr_${review.eggs}.png) no-repeat`}}></span>
+                                    <span className="rating" style={{background: `url(//${awsReview}/assets/spr_${review.eggs}.png) no-repeat`}}></span>
+                                    {/* <span className="rating" style={{background: `url(//ec2-18-191-111-73.us-east-2.compute.amazonaws.com/assets/spr_${review.eggs}.png) no-repeat`}}></span> */}
                                     <span className="reviewTitle">{review.title}</span>
                                     <span className="reviewDate">{this.dateFormatter(review.date)}</span>
                                 </div>

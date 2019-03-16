@@ -25,4 +25,4 @@ build/
 
 #config files
 /database/postgres/postgres.config.js
-
+/server/redis-config.js

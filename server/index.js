@@ -23,8 +23,9 @@ if (cluster.isMaster) {
     console.log('Worker %d died :(', worker.id);
     cluster.fork();
     });
-} else { //For rest of clusters run express server
-
+} else { //For rest of clusters run express server   
+    //connect to redis
+    const redisClient = require('./redis-client')
     app.use(cors());
     app.use(bodyParser.json());
     app.use(compression());
@@ -49,7 +50,7 @@ if (cluster.isMaster) {
     });
     
     app.get('/loaderio-*', function (req, res) {
-        res.sendFile(path.join(__dirname + '/loaderio-fbd36966cb048c05742ebe8ffa6ae1cf.txt'))
+        res.sendFile(path.join(__dirname + '/loaderio-130d39166b87882d4c28033c8eba640f.txt'))
     });
     
     app.use(express.static(__dirname + '/../client/dist'));
@@ -60,12 +61,20 @@ if (cluster.isMaster) {
     });
     
     //GET request for review information according to item id
-    app.get('/reviews/:item_id', (req, res) => {
-        db.any('SELECT * FROM reviews where item_id = $1', [req.params.item_id])
-            .then((data) => {
-                res.send(data);
-                res.end();
-            }).catch() 
+    app.get('/reviews/:item_id', async (req, res) => {
+        const rawData = await redisClient.getAsync(req.params.item_id)
+        if (rawData === null) {
+            db.any('SELECT * FROM reviews where item_id = $1', [req.params.item_id])
+                .then(async (data) => {
+                    await redisClient.setAsync(req.params.item_id, JSON.stringify(data))
+                    res.send(data);
+                    res.end();
+                }).catch() 
+        } else {
+            console.log('Sending data from redis server')
+            res.send(rawData);
+            res.end();
+        }
     });
     
     app.post('/reviews', (req, res) => {
@@ -81,7 +90,6 @@ if (cluster.isMaster) {
     
     app.patch('/reviews', (req, res) => {
         let newPost = req.body;
-        console.log(newPost)
         if (req.body.helpful === true) {
             db.none(`UPDATE reviews SET helpful = helpful + 1 WHERE review_id = $1`, [newPost.id]) 
                 .then(() => {
