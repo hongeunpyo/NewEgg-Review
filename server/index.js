@@ -66,8 +66,8 @@ if (cluster.isMaster) {
         console.log(rawData);
         if (rawData === null) {
             db.any('SELECT * FROM reviews where item_id = $1', [req.params.item_id])
-                .then(async (data) => {
-                    await redisClient.setAsync(req.params.item_id, JSON.stringify(data))
+                .then((data) => {
+                    redisClient.setAsync(req.params.item_id, JSON.stringify(data))
                     res.send(data);
                     res.end();
                 }).catch() 
