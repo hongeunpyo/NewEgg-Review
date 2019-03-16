@@ -50,7 +50,7 @@ if (cluster.isMaster) {
     });
     
     app.get('/loaderio-*', function (req, res) {
-        res.sendFile(path.join(__dirname + '/loaderio-130d39166b87882d4c28033c8eba640f.txt'))
+        res.sendFile(path.join(__dirname + '/loader.txt'))
     });
     
     app.use(express.static(__dirname + '/../client/dist'));
